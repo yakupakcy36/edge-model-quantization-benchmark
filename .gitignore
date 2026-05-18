@@ -25,3 +25,12 @@ htmlcov/
 # artifacts/*.json
 .vscode/
 .idea/
+
+# Security & Secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.token
+secrets/
