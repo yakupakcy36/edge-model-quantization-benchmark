@@ -34,6 +34,23 @@ def test_quantize_tensor_endpoint(client):
     assert data["cosine_similarity"] > 0.99
 
 
+def test_prune_tensor_endpoint(client):
+    payload = {
+        "matrix_rows": 128,
+        "matrix_cols": 128,
+        "target_sparsity": 0.40,
+        "seed": 42
+    }
+    response = client.post("/prune/tensor", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["matrix_shape"] == [128, 128]
+    assert 0.38 <= data["achieved_sparsity"] <= 0.42
+    assert data["total_parameters"] == 128 * 128
+    assert data["non_zero_parameters"] < data["total_parameters"]
+    assert data["rmse_distortion"] > 0.0
+
+
 def test_benchmark_suite_endpoint(client):
     response = client.get("/benchmark/suite")
     assert response.status_code == 200

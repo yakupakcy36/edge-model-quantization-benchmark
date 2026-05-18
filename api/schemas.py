@@ -20,6 +20,22 @@ class QuantizeTensorResponse(BaseModel):
     cosine_similarity: float
 
 
+class PruneTensorRequest(BaseModel):
+    matrix_rows: int = Field(default=256, ge=4, le=1024)
+    matrix_cols: int = Field(default=256, ge=4, le=1024)
+    target_sparsity: float = Field(default=0.40, ge=0.05, le=0.95)
+    seed: int = Field(default=42, ge=0)
+
+
+class PruneTensorResponse(BaseModel):
+    matrix_shape: List[int]
+    target_sparsity: float
+    achieved_sparsity: float
+    total_parameters: int
+    non_zero_parameters: int
+    rmse_distortion: float
+
+
 class ProfileItemSchema(BaseModel):
     configuration_name: str
     memory_footprint_kb: float

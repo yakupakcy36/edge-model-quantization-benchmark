@@ -106,6 +106,12 @@ EDGE AI MODEL QUANTIZATION & PRUNING RUNTIME BENCHMARK
   INT8_POST_TRAINING_QUANTIZED   |   768.0 KB |     4.00x | 78.102 ms |          12.7 IPS |     0.9998
   PRUNED_40PCT_INT8              |   476.2 KB |     6.45x | 77.563 ms |          12.8 IPS |     0.9627
 
+> [!NOTE]
+> **Hardware SIMD vs. Python Emulation Note:**
+> In pure Python/NumPy on host x86 CPUs without compiled C++ tensor libraries (like TensorRT, ONNX Runtime, or TFLite), `np.dot` with signed 8-bit integers relies on userland integer-to-int32 upcasting rather than hardware-accelerated integer vector instructions.
+>
+> On real edge deployment targets featuring dedicated hardware SIMD (e.g., **ARM NEON `sdot`/`udot`** on Cortex-A/M, **Intel AVX-512 VNNI / AMX**, or **Apple Silicon NEON**), INT8 operations execute at **$2\times$ to $4\times$ the throughput of FP32** while consuming up to $75\%$ less dynamic memory bandwidth and power.
+
 [Artifact] Serializing benchmark profile to: artifacts/quantization_benchmark_results.json
 [SUCCESS] Edge quantization benchmark finished successfully.
 ```

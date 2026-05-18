@@ -7,23 +7,28 @@ from fastapi import FastAPI, HTTPException, status
 
 from src.config import DEFAULT_QUANT_CONFIG
 from src.quantization import SymmetricInt8Quantizer
+from src.pruning import MagnitudePruner
 from src.benchmark import EdgeModelBenchmarker, BenchmarkProfile
 from api.schemas import (
     QuantizeTensorRequest,
     QuantizeTensorResponse,
+    PruneTensorRequest,
+    PruneTensorResponse,
     ProfileItemSchema,
     BenchmarkSuiteResponse,
     HealthResponse,
 )
 
 quantizer: Optional[SymmetricInt8Quantizer] = None
+pruner: Optional[MagnitudePruner] = None
 cached_profiles: Optional[List[BenchmarkProfile]] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global quantizer, cached_profiles
+    global quantizer, pruner, cached_profiles
     quantizer = SymmetricInt8Quantizer(config=DEFAULT_QUANT_CONFIG)
+    pruner = MagnitudePruner()
     # Pre-warm benchmark profile with 15 runs for instant sub-second serving
     benchmarker = EdgeModelBenchmarker(config=DEFAULT_QUANT_CONFIG, seed=42)
     cached_profiles = benchmarker.run_suite(runs=15, warmup=3)
@@ -70,6 +75,26 @@ def quantize_custom_tensor(req: QuantizeTensorRequest):
         compression_ratio=q.compression_ratio,
         rmse_distortion=q.rmse_distortion,
         cosine_similarity=q.cosine_similarity,
+    )
+
+
+@app.post("/prune/tensor", response_model=PruneTensorResponse, tags=["Pruning"])
+def prune_custom_tensor(req: PruneTensorRequest):
+    """Applies unstructured magnitude L1 pruning to tensor and returns sparsity metrics."""
+    if pruner is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Pruner not ready")
+
+    np.random.seed(req.seed)
+    w = np.random.randn(req.matrix_rows, req.matrix_cols).astype(np.float32)
+    p = pruner.prune_tensor(w, sparsity=req.target_sparsity)
+
+    return PruneTensorResponse(
+        matrix_shape=[req.matrix_rows, req.matrix_cols],
+        target_sparsity=p.target_sparsity,
+        achieved_sparsity=p.achieved_sparsity,
+        total_parameters=p.total_parameters,
+        non_zero_parameters=p.non_zero_parameters,
+        rmse_distortion=p.rmse_distortion,
     )
 
 
