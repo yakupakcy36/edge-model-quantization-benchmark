@@ -1,0 +1,32 @@
+[
+  {
+    "configuration_name": "FP32_BASELINE",
+    "memory_footprint_kb": 3072.0,
+    "compression_ratio": 1.0,
+    "latency_p50_ms": 5.02,
+    "latency_p95_ms": 22.797,
+    "throughput_ips": 129.9,
+    "cosine_similarity": 1.0,
+    "max_absolute_error": 0.0
+  },
+  {
+    "configuration_name": "INT8_POST_TRAINING_QUANTIZED",
+    "memory_footprint_kb": 768.0,
+    "compression_ratio": 4.0,
+    "latency_p50_ms": 78.102,
+    "latency_p95_ms": 83.252,
+    "throughput_ips": 12.7,
+    "cosine_similarity": 0.9998,
+    "max_absolute_error": 0.1254
+  },
+  {
+    "configuration_name": "PRUNED_40PCT_INT8",
+    "memory_footprint_kb": 476.2,
+    "compression_ratio": 6.45,
+    "latency_p50_ms": 77.563,
+    "latency_p95_ms": 79.601,
+    "throughput_ips": 12.8,
+    "cosine_similarity": 0.9627,
+    "max_absolute_error": 1.4321
+  }
+]
